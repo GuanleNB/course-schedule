@@ -955,9 +955,20 @@ dialog::backdrop {
 }
 
 @media (max-width: 840px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: #eef3fb;
+  }
+
   .app-shell {
-    width: min(100vw - 20px, 680px);
-    padding-top: 12px;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 24px;
   }
 
   .toolbar,
@@ -968,11 +979,72 @@ dialog::backdrop {
   }
 
   .toolbar {
-    display: grid;
+    display: none;
   }
 
   .control-strip {
     position: relative;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 10px;
+    align-items: end;
+    margin: 0;
+    padding: 14px 12px 12px;
+    border: 0;
+    border-bottom: 1px solid #dce4ef;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 4px 18px rgba(24, 32, 47, 0.07);
+    backdrop-filter: none;
+  }
+
+  .term-date-picker,
+  .search-box,
+  .quick-stats {
+    display: none;
+  }
+
+  .week-picker,
+  .jump-date-picker {
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .week-picker > span,
+  .jump-date-picker > span {
+    color: #596579;
+    font-size: 11px;
+  }
+
+  .week-stepper {
+    grid-template-columns: 32px minmax(68px, 1fr) 32px;
+    height: 42px;
+    border-radius: 7px;
+  }
+
+  .week-value {
+    min-width: 0;
+  }
+
+  .week-value input {
+    width: 26px;
+    font-size: 16px;
+  }
+
+  .week-parity {
+    top: -8px;
+    right: 2px;
+    padding: 1px 3px;
+    font-size: 9px;
+  }
+
+  .jump-date-picker input {
+    height: 42px;
+    min-width: 0;
+    border-radius: 7px;
+    padding: 8px;
+    font-size: 14px;
   }
 
   .toolbar-actions,
@@ -991,12 +1063,132 @@ dialog::backdrop {
   }
 
   .schedule-panel {
-    grid-template-columns: 72px 1fr;
-    overflow-x: auto;
+    grid-template-columns: 50px minmax(0, 1fr);
+    width: 100%;
+    min-height: 0;
+    margin-top: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
   }
 
   .schedule-grid {
-    min-width: 820px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-rows: 52px repeat(20, 74px);
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .time-rail {
+    grid-template-rows: 52px repeat(20, 74px);
+  }
+
+  .time-rail div {
+    justify-content: flex-start;
+    padding: 8px 3px 0 7px;
+    font-size: 9px;
+    line-height: 1.25;
+  }
+
+  .time-rail .time-marker {
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .time-rail .time-marker::after {
+    display: none;
+  }
+
+  .day-header {
+    gap: 3px;
+    min-width: 0;
+    padding: 4px 1px;
+    background: #f7f9fc;
+  }
+
+  .day-header strong {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .day-header span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 9px;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+
+  .grid-cell {
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.94);
+  }
+
+  .grid-cell::after {
+    inset: 4px 2px;
+    border-radius: 4px;
+    font-size: 15px;
+  }
+
+  .grid-cell:hover::after {
+    border-color: transparent;
+    background: transparent;
+    opacity: 0;
+  }
+
+  .grid-cell:active::after,
+  .grid-cell:focus-visible::after {
+    border-color: rgba(58, 123, 213, 0.4);
+    background: rgba(233, 242, 255, 0.86);
+    opacity: 1;
+  }
+
+  .course-card {
+    left: calc((100% / var(--course-lane-count, 1)) * var(--course-lane, 0));
+    width: calc((100% / var(--course-lane-count, 1)) - 4px);
+    margin: 2px;
+    border-left-width: 3px;
+    border-radius: 5px;
+    padding: 6px 3px;
+    box-shadow: none;
+  }
+
+  .course-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .course-card strong {
+    display: -webkit-box;
+    margin-bottom: 4px;
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.25;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+
+  .course-card span {
+    font-size: 9px;
+    line-height: 1.25;
+  }
+
+  .course-card .week-badge,
+  .course-card span:not(.course-time):not(.week-badge) {
+    display: none;
+  }
+
+  .course-card .course-time {
+    display: block;
+    color: #526078;
+    white-space: normal;
+  }
+
+  .empty-state button {
+    display: none;
   }
 
   #importDialog {
