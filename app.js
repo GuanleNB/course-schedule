@@ -6,6 +6,7 @@ const sectionTimeVersionKey = "course-schedule-section-time-version";
 const termStartDateKey = "course-schedule-term-start-date";
 const termsStorageKey = "course-schedule-terms-v1";
 const screenshotSeedKey = "hbue-screenshot-courses-v1";
+const verifiedScheduleKey = "verified-complete-schedule-2026-v1";
 const startHour = 1;
 const endHour = 21;
 const rowHeight = 72;
@@ -61,7 +62,71 @@ const defaultCourses = [
 ];
 
 let termStore = loadTermStore();
+removeLegacyDemoCourses();
+applyVerifiedSchedule();
 let courses = getActiveTerm().courses;
+
+function applyVerifiedSchedule() {
+  if (localStorage.getItem(verifiedScheduleKey) === "done") return;
+  const rows = [
+    ["\u5d4c\u5165\u5f0f\u7cfb\u7edf\u8bbe\u8ba1", 1, 3, 5, "1-16", "S2-404\u7269\u8054\u7f51\u5de5\u7a0b\u5ba4", "\u738b\u91d1\u5ead"],
+    ["\u3010\u8c03\u3011\u9a6c\u514b\u601d\u4e3b\u4e49\u57fa\u672c\u539f\u7406", 1, 6, 7, "1-16", "J2-111", "\u9ad8\u5b66\u7434"],
+    ["\u9ad8\u9636\u7efc\u5408\u5927\u5b66\u82f1\u8bed", 1, 8, 9, "9-16", "T2-113", "\u9ec4\u5b87\u5c97"],
+    ["\u6570\u636e\u5e93\u4e0e\u4fe1\u606f\u7cfb\u7edf", 2, 1, 2, "1-2,4,6,8,10,12,14,16", "J1-204", "\u674e\u82d7"],
+    ["\u6570\u636e\u5e93\u4e0e\u4fe1\u606f\u7cfb\u7edf", 2, 1, 2, "3,5,7,9,11,13,15", "S2-410\u8f6f\u4ef6\u5de5\u7a0b\u5b9e\u9a8c\u5ba42", "\u674e\u82d7"],
+    ["\u590d\u53d8\u51fd\u6570", 2, 3, 4, "1-16", "J1-302", "\u674e\u4fca"],
+    ["\u521b\u65b0\u521b\u4e1a\u57fa\u7840", 2, 6, 7, "1-2,4-5,7-8,10-11,13-14,16", "J1-109", "\u5f20\u52c7"],
+    ["\u521b\u65b0\u521b\u4e1a\u57fa\u7840", 2, 6, 7, "3,6,9,12,15", "S1-412\u7ecf\u8425\u7ba1\u7406\u7efc\u5408\u4eff\u771f\u5b9e\u9a8c\u5ba4", "\u5f20\u52c7"],
+    ["\u4fe1\u606f\u68c0\u7d22", 2, 8, 9, "1-8", "J1-318", "\u90ed\u5f69\u5a1f"],
+    ["\u6570\u5b57\u7d20\u517b\u4e0e\u5b9e\u8df5", 2, 8, 9, "9", "J1-318", "\u9648\u73b2"],
+    ["\u6570\u5b57\u7d20\u517b\u4e0e\u5b9e\u8df5", 2, 8, 9, "10-12,16", "J1-318", "\u90ed\u5f69\u5a1f"],
+    ["\u6570\u5b57\u7d20\u517b\u4e0e\u5b9e\u8df5", 2, 8, 9, "13", "J1-318", "\u738b\u5955\u6708"],
+    ["\u6570\u5b57\u7d20\u517b\u4e0e\u5b9e\u8df5", 2, 8, 9, "14-15", "J1-318", "\u8d3e\u8559"],
+    ["\u6cd5\u5f8b\u4e0e\u793e\u4f1a", 2, 10, 11, "1-4", "J1-110", "\u8d75\u6e05"],
+    ["\u6cd5\u5f8b\u4e0e\u793e\u4f1a", 2, 10, 11, "5-8", "J1-110", "\u4f55\u65b0\u65b0"],
+    ["\u666e\u901a\u7269\u7406", 3, 3, 5, "1-16", "J1-210", "\u5e05\u6676"],
+    ["\u5355\u7247\u673a\u539f\u7406\u4e0e\u5e94\u7528", 3, 10, 12, "1-5,7,9,11,13,15-16", "J1-106", "\u8d75\u5a49\u51dd"],
+    ["\u5355\u7247\u673a\u539f\u7406\u4e0e\u5e94\u7528", 3, 10, 12, "6,8,10,12,14", "S2-403\u786c\u4ef6\u6280\u672f\u5b9e\u9a8c\u5ba4", "\u8d75\u5a49\u51dd"],
+    ["\u5de5\u7a0b\u5236\u56fe", 4, 1, 2, "1-16", "S2-311\u6570\u5b57\u91d1\u878d\u667a\u80fd\u5b9e\u9a8c\u5ba4", "\u9648\u83b9"],
+    ["\u5927\u5b66\u4f53\u80b2(3)", 4, 3, 4, "1-16", "\u4e1c\u7bee01", "\u5f20\u658c"],
+    ["\u7ebf\u6027\u4ee3\u6570", 4, 10, 12, "1-16", "J1-305", "\u7530\u5c18"],
+    ["\u3010\u8c03\u3011\u9a6c\u514b\u601d\u4e3b\u4e49\u57fa\u672c\u539f\u7406", 5, 1, 2, "2,4,6,8,10,12,14,16", "J1-107", "\u9ad8\u5b66\u7434"],
+    ["\u6bdb\u6cfd\u4e1c\u601d\u60f3\u548c\u4e2d\u56fd\u7279\u8272\u793e\u4f1a\u4e3b\u4e49\u7406\u8bba\u4f53\u7cfb\u6982\u8bba", 5, 8, 9, "1-16", "J2-111", "\u9648\u6653\u7433"],
+    ["\u6a21\u62df\u7535\u5b50\u6280\u672f\u8bfe\u7a0b\u8bbe\u8ba1", 6, 6, 9, "1-8", "S2-402\u7535\u5b50\u6280\u672f\u5b9e\u9a8c\u5ba4", "\u6c88\u7530"],
+  ];
+  getActiveTerm().courses = rows.map(([name, day, startSection, endSection, weeks, location, teacher]) => ({
+    id: crypto.randomUUID(),
+    name, teacher, location, day, startSection, endSection, weeks, content: "",
+    startTime: defaultSectionTimes[startSection - 1][0],
+    endTime: defaultSectionTimes[endSection - 1][1],
+    color: pickCourseColor(name),
+  }));
+  localStorage.setItem(termsStorageKey, JSON.stringify(termStore));
+  localStorage.setItem(verifiedScheduleKey, "done");
+  localStorage.setItem(screenshotSeedKey, "verified");
+}
+
+function removeLegacyDemoCourses() {
+  let changed = false;
+  termStore.terms.forEach((term) => {
+    const before = term.courses.length;
+    term.courses = term.courses.filter((course) => {
+      const name = String(course.name || "").replace(/\s+/g, "");
+      const teacher = String(course.teacher || "").replace(/\s+/g, "");
+      const location = String(course.location || "").replace(/\s+/g, "");
+      const content = String(course.content || "").replace(/\s+/g, "");
+      return !(
+        Number(course.day) === 3 &&
+        name === "\u5927\u5b66\u82f1\u8bed" &&
+        teacher === "\u674e\u8001\u5e08" &&
+        location === "\u4e09\u6559204" &&
+        content === "\u7cbe\u8bfb\u4e0e\u53e3\u8bed\u7ec3\u4e60"
+      );
+    });
+    if (term.courses.length !== before) changed = true;
+  });
+  if (changed) localStorage.setItem(termsStorageKey, JSON.stringify(termStore));
+}
 
 const grid = document.querySelector("#scheduleGrid");
 const termMenu = document.querySelector("#termMenu");
@@ -160,10 +225,7 @@ const screenshotCourses = [
   { name: "马克思主义基本原理", day: 5, sections: "1-2", weeks: "2-16双", location: "J1-107", teacher: "高学琴" },
   { name: "毛泽东思想和中国特色社会主义理论体系概论", day: 5, sections: "8-9", weeks: "1-16", location: "J2-111", teacher: "陈晓琳" },
 ];
-seedScreenshotCourses();
-repairScheduleData();
-migrateCourseSections();
-renderSchedule();
+// The verified complete schedule above replaces all legacy screenshot seeds.
 
 function seedScreenshotCourses() {
   if (localStorage.getItem(screenshotSeedKey) === "v3") return;
@@ -809,7 +871,7 @@ function createCourseCard(course, layout = { lane: 0, laneCount: 1 }) {
   button.style.setProperty("--course-lane-count", layout.laneCount);
   button.innerHTML = `
     <strong>${escapeHtml(course.name)}</strong>
-    <span class="course-time">${displayStartTime}-${displayEndTime}</span>
+    <span class="course-time">第 ${startSection + 1}-${endSection + 1} 节</span>
     <span class="week-badge">${formatWeeks(course.weeks)}</span>
     <span>${escapeHtml(course.teacher || "未填写老师")}</span>
     <span>${escapeHtml(course.location || "未填写地点")}</span>
