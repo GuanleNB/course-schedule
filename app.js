@@ -646,9 +646,11 @@ function renderSchedule() {
     }
   }
 
-  visibleCourses
-    .sort((a, b) => a.day - b.day || toMinutes(a.startTime) - toMinutes(b.startTime))
-    .forEach((course) => grid.append(createCourseCard(course)));
+  const sortedCourses = visibleCourses
+    .slice()
+    .sort((a, b) => a.day - b.day || getCourseSectionRange(a).start - getCourseSectionRange(b).start);
+  const courseLayouts = buildCourseLayouts(sortedCourses);
+  sortedCourses.forEach((course) => grid.append(createCourseCard(course, courseLayouts.get(course))));
 
   if (visibleCourses.length === 0) {
     const empty = document.querySelector("#emptyTemplate").content.cloneNode(true);
@@ -742,11 +744,56 @@ function changeWeek(delta) {
   renderSchedule();
 }
 
-function createCourseCard(course, index = 0) {
+function getCourseSectionRange(course) {
   const start = Math.max(toMinutes(course.startTime), startHour * 60);
   const end = Math.min(toMinutes(course.endTime), endHour * 60);
-  const startSection = Number.isInteger(course.startSection) ? course.startSection - 1 : nearestSectionBoundary(start, "start");
-  const endSection = Number.isInteger(course.endSection) ? course.endSection - 1 : nearestSectionBoundary(end, "end");
+  const startSection = Number.isInteger(course.startSection)
+    ? course.startSection - 1
+    : nearestSectionBoundary(start, "start");
+  const endSection = Number.isInteger(course.endSection)
+    ? course.endSection - 1
+    : nearestSectionBoundary(end, "end");
+  return { start: startSection, end: Math.max(startSection, endSection) };
+}
+
+function buildCourseLayouts(sortedCourses) {
+  const layouts = new Map();
+  for (let day = 1; day <= 7; day += 1) {
+    const dayCourses = sortedCourses.filter((course) => Number(course.day) === day);
+    const groups = [];
+    dayCourses.forEach((course) => {
+      const range = getCourseSectionRange(course);
+      const group = groups.find((item) => range.start <= item.end);
+      if (group) {
+        group.courses.push(course);
+        group.end = Math.max(group.end, range.end);
+      } else {
+        groups.push({ courses: [course], end: range.end });
+      }
+    });
+
+    groups.forEach((group) => {
+      const laneEnds = [];
+      group.courses.forEach((course) => {
+        const range = getCourseSectionRange(course);
+        let lane = laneEnds.findIndex((end) => end < range.start);
+        if (lane === -1) lane = laneEnds.length;
+        laneEnds[lane] = range.end;
+        layouts.set(course, { lane, laneCount: 1 });
+      });
+      const laneCount = Math.max(1, laneEnds.length);
+      group.courses.forEach((course) => {
+        layouts.get(course).laneCount = laneCount;
+      });
+    });
+  }
+  return layouts;
+}
+
+function createCourseCard(course, layout = { lane: 0, laneCount: 1 }) {
+  const start = Math.max(toMinutes(course.startTime), startHour * 60);
+  const end = Math.min(toMinutes(course.endTime), endHour * 60);
+  const { start: startSection, end: endSection } = getCourseSectionRange(course);
   const displayStartTime = defaultSectionTimes[startSection]?.[0] || course.startTime;
   const displayEndTime = defaultSectionTimes[endSection]?.[1] || course.endTime;
   const rowStart = startSection + 2;
@@ -758,8 +805,8 @@ function createCourseCard(course, index = 0) {
   button.style.setProperty("--card-color", course.color || "#3a7bd5");
   button.style.gridColumn = course.day;
   button.style.gridRow = `${rowStart} / span ${rowSpan}`;
-  button.style.marginTop = "5px";
-  button.style.animationDelay = `${Math.min(index * 35, 210)}ms`;
+  button.style.setProperty("--course-lane", layout.lane);
+  button.style.setProperty("--course-lane-count", layout.laneCount);
   button.innerHTML = `
     <strong>${escapeHtml(course.name)}</strong>
     <span class="course-time">${displayStartTime}-${displayEndTime}</span>
