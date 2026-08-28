@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>课程表</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="toolbar" aria-label="课程表操作">
+        <div>
+          <p class="eyebrow">学期课程管理</p>
+          <h1>可编辑每周课程表</h1>
+        </div>
+        <div class="toolbar-actions">
+          <div class="term-switcher">
+            <span>当前学期</span>
+            <div class="term-menu" id="termMenu">
+              <button class="term-menu-trigger" id="termMenuTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span id="activeTermName"></span>
+                <span class="term-menu-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="term-menu-list" id="termMenuList" role="listbox" hidden></div>
+            </div>
+          </div>
+          <button class="ghost-button" id="addTermButton" type="button">新建学期</button>
+          <button class="ghost-button" id="importButton" type="button">识别教务课表</button>
+          <button class="primary-button" id="addCourseButton" type="button">添加课程</button>
+        </div>
+      </section>
+
+      <section class="control-strip" aria-label="筛选和统计">
+        <div class="week-picker">
+          <span>当前周次</span>
+          <div class="week-stepper" role="group" aria-label="切换当前周次">
+            <button class="week-step-button" id="previousWeekButton" type="button" aria-label="上一周">−</button>
+            <label class="week-value">
+              <input id="weekInput" type="number" min="1" max="30" value="1" aria-label="当前周次" />
+              <span>周</span>
+              <strong class="week-parity" id="weekParity">单周</strong>
+            </label>
+            <button class="week-step-button" id="nextWeekButton" type="button" aria-label="下一周">+</button>
+          </div>
+        </div>
+        <label class="term-date-picker">
+          <span>第 1 周周一</span>
+          <input id="termStartDate" type="date" aria-label="第1周周一日期" />
+        </label>
+        <label class="jump-date-picker">
+          <span>查看日期</span>
+          <input id="jumpDate" type="date" aria-label="选择日期并跳转到对应周" />
+        </label>
+        <label class="search-box">
+          <span>搜索</span>
+          <input id="searchInput" type="search" placeholder="课程、老师或地点" />
+        </label>
+        <div class="quick-stats" id="stats" aria-live="polite"></div>
+      </section>
+
+      <section class="schedule-panel">
+        <div class="time-rail" id="timeRail" aria-hidden="true"></div>
+        <div class="schedule-grid" id="scheduleGrid" aria-label="课程表"></div>
+      </section>
+    </main>
+
+    <dialog class="course-dialog" id="courseDialog">
+      <form method="dialog" class="dialog-card" id="courseForm">
+        <header>
+          <div>
+            <p class="eyebrow">课程详情</p>
+            <h2 id="dialogTitle">添加课程</h2>
+          </div>
+          <button class="icon-button" type="button" id="closeDialogButton" aria-label="关闭">×</button>
+        </header>
+
+        <input id="courseId" type="hidden" />
+        <div class="form-grid">
+          <label>
+            <span>课程名称</span>
+            <input id="courseName" required placeholder="例如：高等数学" />
+          </label>
+          <label>
+            <span>上课老师</span>
+            <input id="teacher" placeholder="例如：张老师" />
+          </label>
+          <label>
+            <span>上课地点</span>
+            <input id="location" placeholder="例如：二教 301" />
+          </label>
+          <label>
+            <span>星期</span>
+            <select id="day" required>
+              <option value="1">周一</option>
+              <option value="2">周二</option>
+              <option value="3">周三</option>
+              <option value="4">周四</option>
+              <option value="5">周五</option>
+              <option value="6">周六</option>
+              <option value="7">周日</option>
+            </select>
+          </label>
+          <label>
+            <span>开始时间</span>
+            <select id="startSection" required></select>
+          </label>
+          <label>
+            <span>结束时间</span>
+            <select id="endSection" required></select>
+          </label>
+          <label>
+            <span>适用周次</span>
+            <input id="weeks" required placeholder="1-16 或 1,3,5-8" />
+          </label>
+          <label>
+            <span>课程颜色</span>
+            <input id="color" type="color" value="#3a7bd5" />
+          </label>
+        </div>
+
+        <label class="notes-field" hidden>
+          <span>本周内容</span>
+          <textarea id="content" rows="3" placeholder="可写实验、讨论、考试、调课说明等"></textarea>
+        </label>
+
+        <footer>
+          <button class="danger-button" id="deleteCourseButton" type="button">删除</button>
+          <div>
+            <button class="ghost-button" value="cancel" type="button" id="cancelDialogButton">取消</button>
+            <button class="primary-button" value="default" type="submit">保存课程</button>
+          </div>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="course-dialog" id="importDialog">
+      <form class="dialog-card import-card import-url-card" id="importForm">
+        <header>
+          <div>
+            <p class="eyebrow">教务系统</p>
+            <h2>打开教务系统</h2>
+          </div>
+          <button class="icon-button" type="button" id="closeImportButton" aria-label="关闭">×</button>
+        </header>
+
+        <label class="system-url-field">
+          <span>教务系统网址</span>
+          <input id="systemUrl" type="url" inputmode="url" autocomplete="url" required placeholder="https://jwxt.example.edu.cn" />
+        </label>
+        <button class="primary-button open-system-button" id="openSystemButton" type="submit">打开教务系统</button>
+        <div class="import-confirm-step" id="importConfirmStep" hidden>
+          <p>在课表页面全选并复制，然后回到这里确认。</p>
+          <button class="primary-button" id="confirmImportButton" type="button">确认导入课程表</button>
+          <p class="import-status" id="importStatus" aria-live="polite"></p>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="emptyTemplate">
+      <div class="empty-state">
+        <h2>这一周还没有课程</h2>
+        <p>添加课程，或从教务系统页面复制课表后自动识别导入。</p>
+        <button class="primary-button" type="button" data-empty-add>添加第一门课</button>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
