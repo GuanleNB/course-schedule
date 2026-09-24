@@ -5,6 +5,7 @@ const timeLabelsKey = "course-schedule-time-labels";
 const sectionTimeVersionKey = "course-schedule-section-time-version";
 const termStartDateKey = "course-schedule-term-start-date";
 const termsStorageKey = "course-schedule-terms-v1";
+const mobileStartDateMigrationKey = "course-schedule-mobile-start-date-2026-09-07-v1";
 const screenshotSeedKey = "hbue-screenshot-courses-v1";
 const verifiedScheduleKey = "verified-complete-schedule-2026-v1";
 const startHour = 1;
@@ -727,6 +728,17 @@ function renderSchedule() {
 
 function restoreTermStartDate() {
   const activeTerm = getActiveTerm();
+  if (
+    window.matchMedia("(max-width: 840px)").matches &&
+    localStorage.getItem(mobileStartDateMigrationKey) !== "done"
+  ) {
+    activeTerm.startDate = "2026-09-07";
+    localStorage.setItem(mobileStartDateMigrationKey, "done");
+    persistTermStore();
+    termStartDateInput.value = activeTerm.startDate;
+    jumpDateInput.value = activeTerm.startDate;
+    return;
+  }
   const savedDate = activeTerm.startDate;
   if (savedDate) {
     termStartDateInput.value = savedDate;
